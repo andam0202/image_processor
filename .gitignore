@@ -80,3 +80,8 @@ data/output/
 # Lock files
 uv.lock
 .master
+
+# image
+
+data/input/*
+data/output/*

@@ -1,7 +1,4 @@
 # 指定されたフォルダ内の画像を透過処理する
-# python3 rembg.py -i data/input -o data/output
-# uv add rembg[gpu]
-
 import os
 import argparse
 from rembg import remove, new_session
@@ -28,28 +25,32 @@ def process_images():
         os.remove(os.path.join(output_dir, file))
     
     # isnet-anime
-    # model_list = ["u2net", "isnet-general-use", "isnet-anime", "birefnet-general"]
-    session = new_session("birefnet-general")
+    model_list = ["isnet-general-use", "isnet-anime", "birefnet-general", "birefnet-general-lite"]
+    session = new_session("isnet-anime")
 
     try:
         for file in os.listdir(input_dir):
             if file.endswith('.jpg') or file.endswith('.png'):
                 img_path = os.path.join(input_dir, file)
-                # if file.endswith('.jpg'):
-                #     img = Image.open(img_path).convert("RGBA")
-                # else:
                 img = Image.open(img_path)
                 ic.ic(img_path)
-                # img = Image.open(img_path).convert("RGBA")
                 ic.ic(img)
                 img = Image.open(img_path)
                 img = remove(img, session=session)
                 img.save(os.path.join(output_dir, file))
-            # 動画の場合
+                
             elif file.endswith('.mp4'):
-                # 動画をフレームごとに画像に変換
-                ## まずは動画をフレームごとに画像に変換
-                os.system(f"ffmpeg -i {os.path.join(input_dir, file)} -vf fps=3 {os.path.join(output_dir, file.replace('.mp4', ''))}_%04d.png")
+                # まずは動画をフレームごとに分割
+                os.system(f"ffmpeg -i {os.path.join(input_dir, file)} -vf fps=30 {os.path.join(output_dir, file.replace('.mp4', ''))}_%04d.png")
+                
+                # また、動画をフレームごとに分割してinputフォルダに保存する
+                for i, image in enumerate(os.listdir(output_dir)):
+                    img_path = os.path.join(output_dir, image)
+                    img = Image.open(img_path)
+                    img.save(os.path.join(input_dir, f"{file.replace('.mp4', '')}_{i:04d}.png"))
+                
+                
+                # 画像を透過処理
                 for image in tqdm(os.listdir(output_dir)):
                     img_path = os.path.join(output_dir, image)
                     img = Image.open(img_path).convert("RGBA")
@@ -59,15 +60,19 @@ def process_images():
                     # cliで実行する場合
                     # command = f"rembg i {os.path.join(output_dir, image)} -m birefnet-general-lite {os.path.join(output_dir, image)}"
                     # os.system(command)
+                    
+                # 最後に動画に戻す
+                command = f"ffmpeg -r 3 -i {os.path.join(output_dir, file.replace('.mp4', ''))}_%04d.png -vcodec libx264 -pix_fmt yuv420p {os.path.join(output_dir, file.replace('.mp4', '_output.mp4'))}"
+                os.system(command)
+                
             else:
                 print(f"Unsupported file type: {file}")
                 logging.error(f"Unsupported file type: {file}")
+                
     except Exception as e:
         print(f"Error processing file {file}: {e}")
         logging.error(f"Error processing file {file}: {e}")
-        
-def main():
-    process_images()
+
 
 if __name__=="__main__":
-    main()
+    process_images()
