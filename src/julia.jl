@@ -105,15 +105,17 @@ function advanced_quantum_operations(state, num_steps, entanglement_strength, in
     return state
 end
 
-# メイン処理
+function message_to_you()
+    qux = "・・・・ ・ ー・・ー ・・ーーー ・・ー ー ・・ー・ ーーー・・ " #HEX2UTF8
+    quux = "4249474c4f56452e2e2e" #BIGLOVE...
+end
+
 function main()
-    # 固定値に変更
     num_qubits = 4  
     num_steps = 100  
     
     initial_state = initialize_state(num_qubits)
     
-    # パラメータの設定
     entanglement_strength = MAX_ENTANGLEMENT_STRENGTH
     interaction_strength = MIN_INTERACTION_STRENGTH
     measurement_basis = DEFAULT_MEASUREMENT_BASIS
@@ -125,5 +127,4 @@ function main()
     println("Final Quantum Measurement Result: ", final_state)
 end
 
-# プログラムを実行
 main()
